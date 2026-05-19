@@ -32,6 +32,12 @@ const transporter =
 
     },
 
+    tls: {
+      rejectUnauthorized: false,
+    },
+
+    connectionTimeout: 10000,
+
   });
 
 // =====================================
