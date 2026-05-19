@@ -116,7 +116,10 @@ app.use(
 
   cors({
 
-    origin: "*",
+     origin: [
+      "http://localhost:5173",
+      "https://court-case-frontend.onrender.com",
+    ],
 
     credentials: true,
 
@@ -463,8 +466,11 @@ new Server(server, {
 
   cors: {
 
-    origin: "*",
-
+     origin: [
+      "http://localhost:5173",
+      "https://court-case-frontend.onrender.com",
+    ],
+    credentials: true,
   },
 
 });
