@@ -1,5 +1,4 @@
-
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 const bcrypt = require("bcryptjs");
 
@@ -8,37 +7,18 @@ const jwt = require("jsonwebtoken");
 const supabase = require("../config/supabase");
 
 // =====================================
+// RESEND CONFIG
+// =====================================
+
+const resend = new Resend(
+  process.env.RESEND_API_KEY
+);
+
+// =====================================
 // TEMP OTP STORE
 // =====================================
 
 let otpStore = {};
-
-// =====================================
-// EMAIL TRANSPORTER
-// =====================================
-
-const transporter =
-  nodemailer.createTransport({
-
-    service: "gmail",
-
-    auth: {
-
-      user:
-        process.env.EMAIL_USER,
-
-      pass:
-        process.env.EMAIL_PASS,
-
-    },
-
-    tls: {
-      rejectUnauthorized: false,
-    },
-
-    connectionTimeout: 10000,
-
-  });
 
 // =====================================
 // REGISTER USER
@@ -208,12 +188,12 @@ exports.sendOTP =
 
       };
 
-      // SEND MAIL
+      // SEND EMAIL
 
-      await transporter.sendMail({
+      await resend.emails.send({
 
         from:
-          process.env.EMAIL_USER,
+          "onboarding@resend.dev",
 
         to: email,
 
@@ -258,6 +238,8 @@ exports.sendOTP =
         success: false,
 
         message:
+          error.message ||
+
           "Server Error",
 
       });
