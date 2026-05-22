@@ -1,412 +1,402 @@
-// server/controllers/profileController.js
-
-const bcrypt =
-  require("bcryptjs");
-
-const generateOTP =
-  require("../utils/generateOTP");
+const supabase =
+  require("../config/supabase");
 
 const sendOTP =
   require("../utils/sendOTP");
 
-const supabase =
-  require("../config/supabaseClient");
 
-/* SEND PASSWORD OTP */
+const {
+  generateOTP,
+  hashOTP,
+  compareOTP,
+  generateOTPExpiry,
+  isOTPExpired,
+} = require("../utils/otp");
 
-exports.sendPasswordOTP =
-  async (req, res) => {
-    try {
-      const {
-        currentPassword,
-        newPassword,
-      } = req.body;
-
-      if (
-        !currentPassword ||
-        !newPassword
-      ) {
-        return res.status(400).json({
-          message:
-            "Missing required fields",
-        });
-      }
-
-      const otp = generateOTP();
-
-      const hashedOTP =
-        await bcrypt.hash(otp, 10);
-
-      const expiresAt = new Date(
-        Date.now() + 5 * 60 * 1000
-      );
-
-      await supabase
-        .from("profile_otps")
-        .insert([
-          {
-            user_id: req.user.id,
-
-            type: "password",
-
-            otp: hashedOTP,
-
-            target_value:
-              newPassword,
-
-            expires_at: expiresAt,
-          },
-        ]);
-
-      await sendOTP(
-        req.user.email,
-        otp
-      );
-
-      return res.json({
-        message:
-          "OTP sent successfully",
-      });
-    } catch (error) {
-      console.log(error);
-
-      return res.status(500).json({
-        message:
-          "Server error",
-      });
-    }
-  };
-
-/* VERIFY PASSWORD OTP */
-
-exports.verifyPasswordOTP =
-  async (req, res) => {
-    try {
-      const { otp } = req.body;
-
-      const { data } =
-        await supabase
-          .from("profile_otps")
-          .select("*")
-          .eq(
-            "user_id",
-            req.user.id
-          )
-          .eq("type", "password")
-          .order(
-            "created_at",
-            { ascending: false }
-          )
-          .limit(1)
-          .single();
-
-      if (!data) {
-        return res.status(404).json({
-          message:
-            "OTP not found",
-        });
-      }
-
-      if (
-        new Date(data.expires_at) <
-        new Date()
-      ) {
-        return res.status(400).json({
-          message:
-            "OTP expired",
-        });
-      }
-
-      const isMatch =
-        await bcrypt.compare(
-          otp,
-          data.otp
-        );
-
-      if (!isMatch) {
-        return res.status(400).json({
-          message:
-            "Invalid OTP",
-        });
-      }
-
-      const { error } =
-        await supabase.auth.admin.updateUserById(
-          req.user.id,
-          {
-            password:
-              data.target_value,
-          }
-        );
-
-      if (error) {
-        return res.status(400).json({
-          message:
-            error.message,
-        });
-      }
-
-      await supabase
-        .from("profile_otps")
-        .delete()
-        .eq("id", data.id);
-
-      return res.json({
-        message:
-          "Password updated successfully",
-      });
-    } catch (error) {
-      console.log(error);
-
-      return res.status(500).json({
-        message:
-          "Server error",
-      });
-    }
-  };
-
-/* SEND EMAIL OTP */
+/* =========================================
+   SEND EMAIL OTP
+========================================= */
 
 exports.sendEmailOTP =
   async (req, res) => {
+
     try {
-      const { email } = req.body;
 
-      const otp = generateOTP();
+      const userId =
+        req.user.id;
 
-      const hashedOTP =
-        await bcrypt.hash(otp, 10);
+      const {
+        newEmail,
+      } = req.body;
 
-      const expiresAt = new Date(
-        Date.now() + 5 * 60 * 1000
-      );
+      /* VALIDATION */
 
-      await supabase
-        .from("profile_otps")
-        .insert([
-          {
-            user_id: req.user.id,
+      if (!newEmail) {
 
-            type: "email",
+        return res.status(400).json({
 
-            otp: hashedOTP,
+          success: false,
 
-            target_value: email,
+          message:
+            "New email is required",
 
-            expires_at: expiresAt,
-          },
-        ]);
+        });
 
-      await sendOTP(email, otp);
+      }
 
-      return res.json({
-        message: "OTP sent",
-      });
-    } catch (error) {
-      console.log(error);
+      /* GENERATE OTP */
 
-      return res.status(500).json({
-        message:
-          "Server error",
-      });
-    }
-  };
+      const otp =
+        generateOTP();
 
-/* VERIFY EMAIL OTP */
+      const otpHash =
+        hashOTP(otp);
 
-exports.verifyEmailOTP =
-  async (req, res) => {
-    try {
-      const { otp } = req.body;
+      const expiresAt =
+        generateOTPExpiry(
+          10
+        );
 
-      const { data } =
+      /* INVALIDATE OLD OTPs */
+
+      const {
+        error:
+          updateError,
+      } =
         await supabase
-          .from("profile_otps")
-          .select("*")
+          .from(
+            "profile_otps"
+          )
+          .update({
+
+            verified:
+              true,
+
+          })
           .eq(
             "user_id",
-            req.user.id
+            userId
           )
-          .eq("type", "email")
-          .order(
-            "created_at",
-            { ascending: false }
+          .eq(
+            "type",
+            "email_change"
           )
-          .limit(1)
-          .single();
+          .eq(
+            "verified",
+            false
+          );
 
-      if (!data) {
-        return res.status(404).json({
-          message:
-            "OTP not found",
-        });
-      }
+      if (updateError) {
 
-      const isMatch =
-        await bcrypt.compare(
-          otp,
-          data.otp
+        console.log(
+          "INVALIDATE OTP ERROR:",
+          updateError
         );
 
-      if (!isMatch) {
-        return res.status(400).json({
+        return res.status(500).json({
+
+          success: false,
+
           message:
-            "Invalid OTP",
+            "Failed to invalidate old OTPs",
+
         });
+
       }
 
-      const { error } =
-        await supabase.auth.admin.updateUserById(
-          req.user.id,
-          {
-            email:
-              data.target_value,
-          }
+      /* STORE OTP */
+
+      const {
+        error:
+          insertError,
+      } =
+        await supabase
+          .from(
+            "profile_otps"
+          )
+          .insert([
+            {
+
+              user_id:
+                userId,
+
+              type:
+                "email_change",
+
+              otp_hash:
+                otpHash,
+
+              target_value:
+                newEmail,
+
+              expires_at:
+                expiresAt,
+
+              verified:
+                false,
+
+            },
+          ]);
+
+      if (insertError) {
+
+        console.log(
+          "STORE OTP ERROR:",
+          insertError
         );
 
-      if (error) {
-        return res.status(400).json({
+        return res.status(500).json({
+
+          success: false,
+
           message:
-            error.message,
+            "Failed to store OTP",
+
         });
+
       }
 
-      await supabase
-        .from("profile_otps")
-        .delete()
-        .eq("id", data.id);
-
-      return res.json({
-        message:
-          "Email updated successfully",
-      });
-    } catch (error) {
-      console.log(error);
-
-      return res.status(500).json({
-        message:
-          "Server error",
-      });
-    }
-  };
-
-/* SEND PHONE OTP */
-
-exports.sendPhoneOTP =
-  async (req, res) => {
-    try {
-      const { phone } = req.body;
-
-      const otp = generateOTP();
-
-      const hashedOTP =
-        await bcrypt.hash(otp, 10);
-
-      const expiresAt = new Date(
-        Date.now() + 5 * 60 * 1000
-      );
-
-      await supabase
-        .from("profile_otps")
-        .insert([
-          {
-            user_id: req.user.id,
-
-            type: "phone",
-
-            otp: hashedOTP,
-
-            target_value:
-              phone,
-
-            expires_at: expiresAt,
-          },
-        ]);
+      /* SEND EMAIL OTP */
 
       await sendOTP(
-        req.user.email,
+        newEmail,
         otp
       );
 
-      return res.json({
-        message: "OTP sent",
+      return res.status(200).json({
+
+        success: true,
+
+        message:
+          "OTP sent successfully",
+
       });
+
     } catch (error) {
-      console.log(error);
+
+      console.log(
+        "SEND EMAIL OTP ERROR:",
+        error
+      );
 
       return res.status(500).json({
+
+        success: false,
+
         message:
-          "Server error",
+          "Internal server error",
+
       });
+
     }
+
   };
 
-/* VERIFY PHONE OTP */
+/* =========================================
+   VERIFY EMAIL OTP
+========================================= */
 
-exports.verifyPhoneOTP =
+exports.verifyEmailOTP =
   async (req, res) => {
-    try {
-      const { otp } = req.body;
 
-      const { data } =
+    try {
+
+      const userId =
+        req.user.id;
+
+      const { otp } =
+        req.body;
+
+      /* VALIDATION */
+
+      if (!otp) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "OTP is required",
+
+        });
+
+      }
+
+      /* FETCH OTP */
+
+      const {
+        data,
+        error,
+      } =
         await supabase
-          .from("profile_otps")
+          .from(
+            "profile_otps"
+          )
           .select("*")
           .eq(
             "user_id",
-            req.user.id
+            userId
           )
-          .eq("type", "phone")
+          .eq(
+            "type",
+            "email_change"
+          )
+          .eq(
+            "verified",
+            false
+          )
           .order(
             "created_at",
-            { ascending: false }
+            {
+              ascending:
+                false,
+            }
           )
           .limit(1)
           .single();
 
-      if (!data) {
-        return res.status(404).json({
-          message:
-            "OTP not found",
-        });
-      }
+      if (
+        error ||
+        !data
+      ) {
 
-      const isMatch =
-        await bcrypt.compare(
-          otp,
-          data.otp
+        console.log(
+          "FETCH OTP ERROR:",
+          error
         );
 
-      if (!isMatch) {
-        return res.status(400).json({
+        return res.status(404).json({
+
+          success: false,
+
           message:
-            "Invalid OTP",
+            "OTP not found",
+
         });
+
       }
 
+      /* CHECK EXPIRY */
+
+      const expired =
+        isOTPExpired(
+          data.expires_at
+        );
+
+      if (expired) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "OTP expired",
+
+        });
+
+      }
+
+      /* VERIFY OTP */
+
+      const validOTP =
+        compareOTP(
+          otp,
+          data.otp_hash
+        );
+
+      if (!validOTP) {
+
+        return res.status(400).json({
+
+          success: false,
+
+          message:
+            "Invalid OTP",
+
+        });
+
+      }
+
+      /* UPDATE USER EMAIL */
+
+      const {
+        error:
+          updateError,
+      } =
+        await supabase
+          .from("users")
+          .update({
+
+            email:
+              data.target_value,
+
+          })
+          .eq(
+            "id",
+            userId
+          );
+
+      if (updateError) {
+
+        console.log(
+          "UPDATE EMAIL ERROR:",
+          updateError
+        );
+
+        return res.status(500).json({
+
+          success: false,
+
+          message:
+            "Failed to update email",
+
+        });
+
+      }
+
+      /* MARK OTP VERIFIED */
+
       await supabase
-        .from("profiles")
+        .from(
+          "profile_otps"
+        )
         .update({
-          phone:
-            data.target_value,
+
+          verified:
+            true,
+
         })
-        .eq("id", req.user.id);
+        .eq(
+          "id",
+          data.id
+        );
 
-      await supabase
-        .from("profile_otps")
-        .delete()
-        .eq("id", data.id);
+      return res.status(200).json({
 
-      return res.json({
+        success: true,
+
         message:
-          "Phone updated successfully",
+          "Email updated successfully",
+
       });
+
     } catch (error) {
-      console.log(error);
+
+      console.log(
+        "VERIFY EMAIL OTP ERROR:",
+        error
+      );
 
       return res.status(500).json({
+
+        success: false,
+
         message:
-          "Server error",
+          "Internal server error",
+
       });
+
     }
+
   };
+

@@ -63,6 +63,8 @@ const VerifyProfileOTP = () => {
       const code =
         otp.join("");
 
+      // VALIDATE OTP
+
       if (
         code.length !== 6
       ) {
@@ -79,46 +81,101 @@ const VerifyProfileOTP = () => {
 
         setLoading(true);
 
+        // =====================================
+        // PASSWORD OTP
+        // =====================================
+
         if (
           type === "password"
         ) {
 
           await verifyPasswordOTP({
+
             ...payload,
+
             otp: code,
+
           });
 
+          showSuccess(
+            "Password updated successfully"
+          );
+
+          navigate(
+            "/profile"
+          );
+
+          return;
+
         }
+
+        // =====================================
+        // EMAIL OTP
+        // =====================================
 
         if (
           type === "email"
         ) {
 
           await verifyEmailOTP({
-            ...payload,
+
             otp: code,
+
           });
 
+          showSuccess(
+            "Email updated successfully"
+          );
+
+          // CLEAR OLD SESSION
+
+          localStorage.removeItem(
+            "token"
+          );
+
+          localStorage.removeItem(
+            "user"
+          );
+
+          sessionStorage.clear();
+
+          // FORCE LOGIN AGAIN
+
+          navigate(
+            "/login"
+          );
+
+          return;
+
         }
+
+        // =====================================
+        // PHONE OTP
+        // =====================================
 
         if (
           type === "phone"
         ) {
 
           await verifyPhoneOTP({
+
             ...payload,
+
             otp: code,
+
           });
 
+          showSuccess(
+            "Phone updated successfully"
+          );
+
+          navigate(
+            "/profile"
+          );
+
+          return;
+
         }
-
-        showSuccess(
-          "Updated successfully"
-        );
-
-        navigate(
-          "/profile"
-        );
 
       } catch (error) {
 
@@ -151,11 +208,8 @@ const VerifyProfileOTP = () => {
           className="
             bg-white
             dark:bg-[#111827]
-
             p-6
-
             rounded-3xl
-
             shadow-xl
           "
         >
@@ -166,9 +220,7 @@ const VerifyProfileOTP = () => {
             className="
               text-2xl
               font-bold
-
               text-center
-
               text-gray-900
               dark:text-white
             "
@@ -182,14 +234,13 @@ const VerifyProfileOTP = () => {
             className="
               text-center
               text-gray-500
-
               mt-2
             "
           >
             Enter the 6-digit code
           </p>
 
-          {/* OTP */}
+          {/* OTP INPUT */}
 
           <div className="mt-8">
 

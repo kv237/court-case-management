@@ -215,7 +215,7 @@ exports.sendOTP =
       await transporter.sendMail({
 
         from:
-          process.env.EMAIL_USER,
+          process.env.SENDER_EMAIL,
 
         to: email,
 

@@ -3,17 +3,13 @@ import { useState } from "react";
 import {
   User,
   Mail,
-  Phone,
   Shield,
   LogOut,
   Edit3,
   Bell,
   Lock,
   ChevronRight,
-  FileText,
-  Briefcase,
   KeyRound,
-  Smartphone,
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -43,10 +39,6 @@ function Profile() {
         storedUser?.email ||
         "superintendent@court.gov",
 
-      phone:
-        storedUser?.phone ||
-        "+91 9876543210",
-
       role:
         storedUser?.role ||
         "District Court Admin",
@@ -57,20 +49,17 @@ function Profile() {
   // LOGOUT
   // =====================================
 
- const handleLogout = () => {
+  const handleLogout = () => {
 
-  // CLEAR STORAGE
+    localStorage.removeItem("token");
 
-  localStorage.removeItem("token");
+    localStorage.removeItem("user");
 
-  localStorage.removeItem("user");
+    sessionStorage.clear();
 
-  sessionStorage.clear();
+    window.location.replace("/login");
+  };
 
-  // FORCE FULL RELOAD
-
-  window.location.replace("/login");
-};
   // =====================================
   // SETTINGS MENU
   // =====================================
@@ -79,7 +68,7 @@ function Profile() {
     {
       icon: Bell,
       title: "Notifications",
-      subtitle: "Manage alerts",
+      subtitle: "Coming Soon",
     },
 
     {
@@ -104,33 +93,6 @@ function Profile() {
 
       onClick: () =>
         navigate("/change-email"),
-    },
-
-    {
-      icon: Smartphone,
-      title: "Change Phone",
-      subtitle: "Update phone number",
-
-      onClick: () =>
-        navigate("/change-phone"),
-    },
-
-    {
-      icon: FileText,
-      title: "Documents",
-      subtitle: "Manage files",
-
-      onClick: () =>
-        navigate("/documents"),
-    },
-
-    {
-      icon: Briefcase,
-      title: "Cases",
-      subtitle: "View case records",
-
-      onClick: () =>
-        navigate("/cases"),
     },
   ];
 
@@ -351,80 +313,6 @@ function Profile() {
               }
               className="
                 text-cyan-500
-                text-xs
-                font-semibold
-              "
-            >
-              Change
-            </button>
-          </div>
-
-          {/* PHONE */}
-
-          <div
-            className="
-              bg-white
-              dark:bg-[#0B1120]
-              rounded-3xl
-              p-4
-              border
-              border-gray-200
-              dark:border-slate-800
-              flex
-              items-center
-              gap-4
-            "
-          >
-            <div
-              className="
-                w-12
-                h-12
-                rounded-2xl
-                bg-green-100
-                dark:bg-green-500/10
-                flex
-                items-center
-                justify-center
-              "
-            >
-              <Phone
-                size={20}
-                className="
-                  text-green-500
-                "
-              />
-            </div>
-
-            <div className="flex-1">
-              <p
-                className="
-                  text-[11px]
-                  text-gray-500
-                  dark:text-gray-400
-                "
-              >
-                Phone Number
-              </p>
-
-              <h3
-                className="
-                  text-[13px]
-                  font-semibold
-                  text-black
-                  dark:text-white
-                  mt-1
-                "
-              >
-                {user.phone}
-              </h3>
-            </div>
-
-            <button
-              onClick={() =>
-                navigate("/change-phone")
-              }
-              className="
-                text-green-500
                 text-xs
                 font-semibold
               "

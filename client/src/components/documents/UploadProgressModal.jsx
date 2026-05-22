@@ -29,7 +29,7 @@ const UploadProgressModal = ({
         w-full
         max-w-sm
         bg-white
-        dark:bg-zinc-900
+        dark:bg-[#0B1120]
         rounded-3xl
         shadow-2xl
         overflow-hidden"

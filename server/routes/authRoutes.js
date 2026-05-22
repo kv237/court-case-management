@@ -88,7 +88,8 @@ router.get(
     try {
 
       const supabase =
-        require("../config/supabase");
+        require(
+          "../config/supabase");
 
       const {
         data: user,

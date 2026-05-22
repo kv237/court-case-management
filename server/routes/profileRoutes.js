@@ -16,22 +16,29 @@ const otpRateLimiter = require(
   "../middleware/rateLimiter"
 );
 
-/* PASSWORD */
+/* =========================================
+   PASSWORD OTP
+========================================= */
 
-router.post(
-  "/send-password-otp",
-  verifyToken,
-  otpRateLimiter,
-  profileController.sendPasswordOTP
-);
+// TEMPORARILY DISABLED
+// Rebuild later using new OTP architecture
 
-router.post(
-  "/verify-password-otp",
-  verifyToken,
-  profileController.verifyPasswordOTP
-);
+// router.post(
+//   "/send-password-otp",
+//   verifyToken,
+//   otpRateLimiter,
+//   profileController.sendPasswordOTP
+// );
 
-/* EMAIL */
+// router.post(
+//   "/verify-password-otp",
+//   verifyToken,
+//   profileController.verifyPasswordOTP
+// );
+
+/* =========================================
+   EMAIL OTP
+========================================= */
 
 router.post(
   "/send-email-otp",
@@ -46,19 +53,18 @@ router.post(
   profileController.verifyEmailOTP
 );
 
-/* PHONE */
+/* =========================================
+   PHONE OTP
+========================================= */
 
-router.post(
-  "/send-phone-otp",
-  verifyToken,
-  otpRateLimiter,
-  profileController.sendPhoneOTP
-);
+// TEMPORARILY REMOVED
+// Rebuild later with stable SMS provider
 
-router.post(
-  "/verify-phone-otp",
-  verifyToken,
-  profileController.verifyPhoneOTP
-);
+// router.post(
+//   "/send-phone-otp",
+//   verifyToken,
+//   otpRateLimiter,
+//   profileController.sendPhoneOTP
+// );
 
 module.exports = router;

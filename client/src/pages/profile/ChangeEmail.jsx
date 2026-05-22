@@ -60,9 +60,11 @@ const ChangeEmail = () => {
         setLoading(true);
 
         await sendEmailOTP({
-          email,
-        });
 
+  newEmail:
+    email,
+
+});
         showSuccess(
           "OTP sent"
         );

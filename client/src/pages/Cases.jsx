@@ -16,13 +16,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import {
-
-  showSuccess,
-
-  showError,
-
-} from "../utils/toast";
+import toast from "react-hot-toast";
 
 import {
   getCases,
