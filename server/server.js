@@ -115,8 +115,12 @@ app.use(compression());
 
 const allowedOrigins = [
   "http://localhost:5173",
-  process.env.FRONTEND_URL,
+  "https://court-case-management-nu.vercel.app",
 ];
+
+if (process.env.FRONTEND_URL) {
+  allowedOrigins.push(process.env.FRONTEND_URL);
+}
 
 app.use(
 
@@ -124,11 +128,18 @@ app.use(
 
     origin: function (origin, callback) {
 
-      if (!origin || allowedOrigins.includes(origin)) {
+      // allow requests without origin
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
 
         callback(null, true);
 
       } else {
+
+        console.log("Blocked Origin:", origin);
 
         callback(new Error("CORS Not Allowed"));
 
@@ -507,7 +518,7 @@ new Server(server, {
 
     origin: [
       "http://localhost:5173",
-      process.env.FRONTEND_URL,
+      "https://court-case-management-nu.vercel.app",
     ],
 
     credentials: true,
