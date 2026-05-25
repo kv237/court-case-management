@@ -87,7 +87,8 @@ const folderRoutes =
 require("./routes/folderRoutes");
 
 const profileRoutes =
-  require("./routes/profileRoutes");
+require("./routes/profileRoutes");
+
 
 
 // ===============================
@@ -112,14 +113,28 @@ app.use(compression());
 // CORS
 // ===============================
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  process.env.FRONTEND_URL,
+];
+
 app.use(
 
   cors({
 
-     origin: [
-      "http://localhost:5173",
-      "https://court-case-frontend.onrender.com",
-    ],
+    origin: function (origin, callback) {
+
+      if (!origin || allowedOrigins.includes(origin)) {
+
+        callback(null, true);
+
+      } else {
+
+        callback(new Error("CORS Not Allowed"));
+
+      }
+
+    },
 
     credentials: true,
 
@@ -140,7 +155,7 @@ rateLimit({
   windowMs:
     15 * 60 * 1000,
 
-  max: 1000,
+  max: 100,
 
   message: {
 
@@ -357,6 +372,8 @@ app.use(
   profileRoutes
 );
 
+
+
 // ===============================
 // HOME ROUTE
 // ===============================
@@ -400,6 +417,28 @@ app.get(
   }
 
 );
+
+
+
+// ===============================
+// ADDITIONAL HEALTH ROUTE
+// ===============================
+
+app.get("/api/health", (req, res) => {
+
+  res.status(200).json({
+
+    success: true,
+
+    message: "Backend Healthy",
+
+    server: "Running",
+
+    timestamp: new Date(),
+
+  });
+
+});
 
 
 
@@ -466,11 +505,13 @@ new Server(server, {
 
   cors: {
 
-     origin: [
+    origin: [
       "http://localhost:5173",
-      "https://court-case-frontend.onrender.com",
+      process.env.FRONTEND_URL,
     ],
+
     credentials: true,
+
   },
 
 });
