@@ -1,13 +1,25 @@
-const { Resend } = require("resend");
+const SibApiV3Sdk =
+  require("sib-api-v3-sdk");
 
 // =====================================
-// RESEND CONFIG
+// CONFIGURE BREVO API
 // =====================================
 
-const resend =
-  new Resend(
-    process.env.RESEND_API_KEY
-  );
+const client =
+  SibApiV3Sdk.ApiClient
+    .instance;
+
+const apiKey =
+  client.authentications[
+    "api-key"
+  ];
+
+apiKey.apiKey =
+  process.env.BREVO_API_KEY;
+
+const transactionalApi =
+  new SibApiV3Sdk
+    .TransactionalEmailsApi();
 
 // =====================================
 // SEND OTP FUNCTION
@@ -27,63 +39,76 @@ const sendOTP =
       );
 
       const response =
-        await resend.emails.send({
+        await transactionalApi
+          .sendTransacEmail({
 
-          from:
-            "onboarding@resend.dev",
+            sender: {
 
-          to: email,
+              email:
+                process.env
+                  .SENDER_EMAIL,
 
-          subject:
-            "Court Case Management OTP Verification",
+              name:
+                "Court Case Management",
 
-          html: `
-            <div style="
-              font-family: Arial, sans-serif;
-              max-width: 500px;
-              margin: auto;
-              padding: 20px;
-              border: 1px solid #ddd;
-              border-radius: 10px;
-            ">
+            },
 
-              <h2 style="
-                color: #2563eb;
-              ">
-                OTP Verification
-              </h2>
+            to: [
+              {
+                email,
+              },
+            ],
 
-              <p>
-                Your OTP for email verification is:
-              </p>
+            subject:
+              "Court Case Management OTP Verification",
 
+            htmlContent: `
               <div style="
-                font-size: 32px;
-                font-weight: bold;
-                letter-spacing: 5px;
-                margin: 20px 0;
-                color: #2563eb;
-                text-align: center;
+                font-family: Arial, sans-serif;
+                max-width: 500px;
+                margin: auto;
+                padding: 20px;
+                border: 1px solid #ddd;
+                border-radius: 10px;
               ">
-                ${otp}
+
+                <h2 style="
+                  color: #2563eb;
+                ">
+                  OTP Verification
+                </h2>
+
+                <p>
+                  Your OTP for email verification is:
+                </p>
+
+                <div style="
+                  font-size: 32px;
+                  font-weight: bold;
+                  letter-spacing: 5px;
+                  margin: 20px 0;
+                  color: #2563eb;
+                  text-align: center;
+                ">
+                  ${otp}
+                </div>
+
+                <p>
+                  This OTP expires in
+                  <strong>
+                    10 minutes
+                  </strong>.
+                </p>
+
+                <p>
+                  If you did not request this,
+                  please ignore this email.
+                </p>
+
               </div>
+            `,
 
-              <p>
-                This OTP expires in
-                <strong>
-                  10 minutes
-                </strong>.
-              </p>
-
-              <p>
-                If you did not request this,
-                please ignore this email.
-              </p>
-
-            </div>
-          `,
-
-        });
+          });
 
       console.log(
         "OTP EMAIL SENT SUCCESSFULLY"
@@ -93,12 +118,18 @@ const sendOTP =
         response
       );
 
-      return response;
+      return {
+
+        success: true,
+
+        response,
+
+      };
 
     } catch (error) {
 
       console.error(
-        "SEND OTP ERROR:",
+        "BREVO API ERROR:",
         error
       );
 
