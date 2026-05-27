@@ -1,8 +1,8 @@
 const nodemailer = require("nodemailer");
 
-// ===============================
+// =====================================
 // DEBUG ENV VARIABLES
-// ===============================
+// =====================================
 
 console.log(
   "EMAIL_USER:",
@@ -21,184 +21,167 @@ console.log(
   process.env.SENDER_EMAIL
 );
 
-// ===============================
-// BREVO SMTP TRANSPORTER
-// ===============================
+// =====================================
+// CREATE BREVO SMTP TRANSPORTER
+// =====================================
 
-const transporter =
-  nodemailer.createTransport({
+const transporter = nodemailer.createTransport({
 
-    host:
-      "smtp-relay.brevo.com",
+  host: "smtp-relay.brevo.com",
 
-    port: 587,
+  port: 587,
 
-    secure: false,
+  secure: false,
 
-    auth: {
+  auth: {
 
-      user:
-        process.env.EMAIL_USER,
+    user: process.env.EMAIL_USER,
 
-      pass:
-        process.env.EMAIL_PASS,
+    pass: process.env.EMAIL_PASS,
 
-    },
+  },
 
-    tls: {
+  connectionTimeout: 10000,
 
-      rejectUnauthorized: false,
+  greetingTimeout: 10000,
 
-    },
+  socketTimeout: 10000,
 
-  });
+});
 
-// ===============================
-// VERIFY CONNECTION
-// ===============================
+// =====================================
+// VERIFY SMTP CONNECTION
+// =====================================
 
-transporter.verify(
-  (error, success) => {
+transporter.verify((error, success) => {
 
-    if (error) {
+  if (error) {
 
-      console.error(
-        "BREVO SMTP ERROR:",
-        error
-      );
+    console.error(
+      "SMTP VERIFY ERROR:",
+      error
+    );
 
-    } else {
+  } else {
 
-      console.log(
-        "BREVO SMTP CONNECTED SUCCESSFULLY"
-      );
-
-    }
+    console.log(
+      "SMTP SERVER READY"
+    );
 
   }
-);
 
-// ===============================
+});
+
+// =====================================
 // SEND OTP FUNCTION
-// ===============================
+// =====================================
 
-const sendOTP =
-  async (
-    email,
-    otp
-  ) => {
+const sendOTP = async (
+  email,
+  otp
+) => {
 
-    try {
+  try {
 
-      console.log(
-        "Sending OTP to:",
-        email
-      );
+    console.log(
+      "Sending OTP to:",
+      email
+    );
 
-      const mailOptions = {
+    const mailOptions = {
 
-        from:
-          process.env.SENDER_EMAIL,
+      from: process.env.SENDER_EMAIL,
 
-        to: email,
+      to: email,
 
-        subject:
-          "Court Case Management OTP Verification",
+      subject:
+        "Court Case Management OTP Verification",
 
-        html: `
-          <div style="
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
+      html: `
+        <div style="
+          font-family: Arial, sans-serif;
+          max-width: 500px;
+          margin: auto;
+          padding: 20px;
+          border: 1px solid #ddd;
+          border-radius: 10px;
+        ">
+
+          <h2 style="
+            color: #2563eb;
           ">
+            OTP Verification
+          </h2>
 
-            <h2 style="
-              color: #2563eb;
-            ">
-              OTP Verification
-            </h2>
+          <p>
+            Your OTP for email verification is:
+          </p>
 
-            <p>
-              Your OTP for email verification is:
-            </p>
-
-            <div style="
-              font-size: 32px;
-              font-weight: bold;
-              letter-spacing: 5px;
-              margin: 20px 0;
-              color: #2563eb;
-              text-align: center;
-            ">
-              ${otp}
-            </div>
-
-            <p>
-              This OTP expires in
-              <strong>
-                10 minutes
-              </strong>.
-            </p>
-
-            <p>
-              If you did not request this,
-              please ignore this email.
-            </p>
-
+          <div style="
+            font-size: 32px;
+            font-weight: bold;
+            letter-spacing: 5px;
+            margin: 20px 0;
+            color: #2563eb;
+            text-align: center;
+          ">
+            ${otp}
           </div>
-        `,
 
-      };
+          <p>
+            This OTP expires in
+            <strong>
+              10 minutes
+            </strong>.
+          </p>
 
-      const info =
-        await transporter.sendMail(
-          mailOptions
-        );
+          <p>
+            If you did not request this,
+            please ignore this email.
+          </p>
 
-      console.log(
-        "OTP EMAIL SENT SUCCESSFULLY"
+        </div>
+      `,
+
+    };
+
+    const info =
+      await transporter.sendMail(
+        mailOptions
       );
 
-      console.log(
-        "MESSAGE ID:",
-        info.messageId
-      );
+    console.log(
+      "OTP EMAIL SENT SUCCESSFULLY"
+    );
 
-      return {
+    console.log(
+      "MESSAGE ID:",
+      info.messageId
+    );
 
-        success: true,
+    return {
 
-        messageId:
-          info.messageId,
+      success: true,
 
-      };
+      messageId:
+        info.messageId,
 
-    } catch (error) {
+    };
 
-      console.error(
-        "SEND OTP ERROR:",
-        error.message
-      );
+  } catch (error) {
 
-      console.error(
-        "FULL ERROR:",
-        JSON.stringify(
-          error,
-          null,
-          2
-        )
-      );
+    console.error(
+      "SEND OTP ERROR:",
+      error
+    );
 
-      throw new Error(
-        "Failed to send OTP email"
-      );
+    throw new Error(
+      error.message ||
+      "Failed to send OTP email"
+    );
 
-    }
+  }
 
-  };
+};
 
-module.exports =
-  sendOTP;
+module.exports = sendOTP;
