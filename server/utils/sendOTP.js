@@ -45,41 +45,22 @@ const transporter =
 
     },
 
+    pool: true,
+
+    maxConnections: 1,
+
+    maxMessages: 10,
+
     connectionTimeout:
-      20000,
+      60000,
 
     greetingTimeout:
-      20000,
+      60000,
 
     socketTimeout:
-      20000,
+      60000,
 
   });
-
-// =====================================
-// VERIFY SMTP CONNECTION
-// =====================================
-
-transporter.verify(
-  (error, success) => {
-
-    if (error) {
-
-      console.error(
-        "SMTP VERIFY ERROR:",
-        error
-      );
-
-    } else {
-
-      console.log(
-        "SMTP SERVER READY"
-      );
-
-    }
-
-  }
-);
 
 // =====================================
 // SEND OTP FUNCTION
