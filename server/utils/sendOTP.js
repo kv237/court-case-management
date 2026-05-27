@@ -22,18 +22,13 @@ console.log(
 );
 
 // =====================================
-// CREATE SMTP TRANSPORTER
+// CREATE GMAIL SMTP TRANSPORTER
 // =====================================
 
 const transporter =
   nodemailer.createTransport({
 
-    host:
-      "smtp-relay.brevo.com",
-
-    port: 465,
-
-    secure: true,
+    service: "gmail",
 
     auth: {
 
@@ -44,21 +39,6 @@ const transporter =
         process.env.EMAIL_PASS,
 
     },
-
-    pool: true,
-
-    maxConnections: 1,
-
-    maxMessages: 10,
-
-    connectionTimeout:
-      60000,
-
-    greetingTimeout:
-      60000,
-
-    socketTimeout:
-      60000,
 
   });
 
