@@ -1,5 +1,5 @@
-const nodemailer =
-  require("nodemailer");
+const sendOTPEmail =
+  require("../utils/sendOTP");
 
 const bcrypt =
   require("bcryptjs");
@@ -14,27 +14,7 @@ const supabase =
 // BREVO SMTP CONFIG
 // =====================================
 
-const transporter =
-  nodemailer.createTransport({
 
-    host:
-      "smtp-relay.brevo.com",
-
-    port: 587,
-
-    secure: false,
-
-    auth: {
-
-      user:
-        process.env.EMAIL_USER,
-
-      pass:
-        process.env.EMAIL_PASS,
-
-    },
-
-  });
 
 // =====================================
 // TEMP OTP STORE
@@ -173,7 +153,8 @@ exports.sendOTP =
 
     try {
 
-      const { email } = req.body;
+      const { email } =
+        req.body;
 
       if (!email) {
 
@@ -190,13 +171,12 @@ exports.sendOTP =
 
       // GENERATE OTP
 
-      const otp = Math.floor(
-
-        100000 +
+      const otp =
+        Math.floor(
+          100000 +
           Math.random() *
             900000
-
-      ).toString();
+        ).toString();
 
       // STORE OTP
 
@@ -210,39 +190,19 @@ exports.sendOTP =
 
       };
 
-      // SEND EMAIL
+      console.log(
+        "Generated OTP:",
+        otp
+      );
 
-      await transporter.sendMail({
+      // SEND EMAIL USING UTILITY
 
-        from:
-          process.env.SENDER_EMAIL,
+      await sendOTPEmail(
+        email,
+        otp
+      );
 
-        to: email,
-
-        subject:
-          "Court Case OTP Verification",
-
-        html: `
-          <div style="font-family: Arial; padding: 20px;">
-
-            <h2>OTP Verification</h2>
-
-            <p>Your OTP code is:</p>
-
-            <h1 style="letter-spacing: 5px;">
-              ${otp}
-            </h1>
-
-            <p>
-              OTP expires in 5 minutes.
-            </p>
-
-          </div>
-        `,
-
-      });
-
-      res.json({
+      return res.status(200).json({
 
         success: true,
 
@@ -253,16 +213,19 @@ exports.sendOTP =
 
     } catch (error) {
 
-      console.log(error);
+      console.error(
+        "SEND OTP CONTROLLER ERROR:",
+        error
+      );
 
-      res.status(500).json({
+      return res.status(500).json({
 
         success: false,
 
         message:
           error.message ||
 
-          "Server Error",
+          "Failed to send OTP",
 
       });
 
