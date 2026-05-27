@@ -22,166 +22,178 @@ console.log(
 );
 
 // =====================================
-// CREATE BREVO SMTP TRANSPORTER
+// CREATE SMTP TRANSPORTER
 // =====================================
 
-const transporter = nodemailer.createTransport({
+const transporter =
+  nodemailer.createTransport({
 
-  host: "smtp-relay.brevo.com",
+    host:
+      "smtp-relay.brevo.com",
 
-  port: 587,
+    port: 465,
 
-  secure: false,
+    secure: true,
 
-  auth: {
+    auth: {
 
-    user: process.env.EMAIL_USER,
+      user:
+        process.env.EMAIL_USER,
 
-    pass: process.env.EMAIL_PASS,
+      pass:
+        process.env.EMAIL_PASS,
 
-  },
+    },
 
-  connectionTimeout: 10000,
+    connectionTimeout:
+      20000,
 
-  greetingTimeout: 10000,
+    greetingTimeout:
+      20000,
 
-  socketTimeout: 10000,
+    socketTimeout:
+      20000,
 
-});
+  });
 
 // =====================================
 // VERIFY SMTP CONNECTION
 // =====================================
 
-transporter.verify((error, success) => {
+transporter.verify(
+  (error, success) => {
 
-  if (error) {
+    if (error) {
 
-    console.error(
-      "SMTP VERIFY ERROR:",
-      error
-    );
+      console.error(
+        "SMTP VERIFY ERROR:",
+        error
+      );
 
-  } else {
+    } else {
 
-    console.log(
-      "SMTP SERVER READY"
-    );
+      console.log(
+        "SMTP SERVER READY"
+      );
+
+    }
 
   }
-
-});
+);
 
 // =====================================
 // SEND OTP FUNCTION
 // =====================================
 
-const sendOTP = async (
-  email,
-  otp
-) => {
+const sendOTP =
+  async (
+    email,
+    otp
+  ) => {
 
-  try {
+    try {
 
-    console.log(
-      "Sending OTP to:",
-      email
-    );
-
-    const mailOptions = {
-
-      from: process.env.SENDER_EMAIL,
-
-      to: email,
-
-      subject:
-        "Court Case Management OTP Verification",
-
-      html: `
-        <div style="
-          font-family: Arial, sans-serif;
-          max-width: 500px;
-          margin: auto;
-          padding: 20px;
-          border: 1px solid #ddd;
-          border-radius: 10px;
-        ">
-
-          <h2 style="
-            color: #2563eb;
-          ">
-            OTP Verification
-          </h2>
-
-          <p>
-            Your OTP for email verification is:
-          </p>
-
-          <div style="
-            font-size: 32px;
-            font-weight: bold;
-            letter-spacing: 5px;
-            margin: 20px 0;
-            color: #2563eb;
-            text-align: center;
-          ">
-            ${otp}
-          </div>
-
-          <p>
-            This OTP expires in
-            <strong>
-              10 minutes
-            </strong>.
-          </p>
-
-          <p>
-            If you did not request this,
-            please ignore this email.
-          </p>
-
-        </div>
-      `,
-
-    };
-
-    const info =
-      await transporter.sendMail(
-        mailOptions
+      console.log(
+        "Sending OTP to:",
+        email
       );
 
-    console.log(
-      "OTP EMAIL SENT SUCCESSFULLY"
-    );
+      const mailOptions = {
 
-    console.log(
-      "MESSAGE ID:",
-      info.messageId
-    );
+        from:
+          process.env.SENDER_EMAIL,
 
-    return {
+        to: email,
 
-      success: true,
+        subject:
+          "Court Case Management OTP Verification",
 
-      messageId:
-        info.messageId,
+        html: `
+          <div style="
+            font-family: Arial, sans-serif;
+            max-width: 500px;
+            margin: auto;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 10px;
+          ">
 
-    };
+            <h2 style="
+              color: #2563eb;
+            ">
+              OTP Verification
+            </h2>
 
-  } catch (error) {
+            <p>
+              Your OTP for email verification is:
+            </p>
 
-    console.error(
-      "SEND OTP ERROR:",
-      error
-    );
+            <div style="
+              font-size: 32px;
+              font-weight: bold;
+              letter-spacing: 5px;
+              margin: 20px 0;
+              color: #2563eb;
+              text-align: center;
+            ">
+              ${otp}
+            </div>
 
-    throw new Error(
-      error.message ||
-      "Failed to send OTP email"
-    );
+            <p>
+              This OTP expires in
+              <strong>
+                10 minutes
+              </strong>.
+            </p>
 
-  }
+            <p>
+              If you did not request this,
+              please ignore this email.
+            </p>
 
-};
+          </div>
+        `,
 
-module.exports = sendOTP;
+      };
+
+      const info =
+        await transporter.sendMail(
+          mailOptions
+        );
+
+      console.log(
+        "OTP EMAIL SENT SUCCESSFULLY"
+      );
+
+      console.log(
+        "MESSAGE ID:",
+        info.messageId
+      );
+
+      return {
+
+        success: true,
+
+        messageId:
+          info.messageId,
+
+      };
+
+    } catch (error) {
+
+      console.error(
+        "SEND OTP ERROR:",
+        error
+      );
+
+      throw new Error(
+        error.message ||
+        "Failed to send OTP email"
+      );
+
+    }
+
+  };
+
+module.exports =
+  sendOTP;
