@@ -97,6 +97,8 @@ require("./routes/profileRoutes");
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 
 
 // ===============================

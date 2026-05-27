@@ -1,5 +1,29 @@
-const nodemailer =
-  require("nodemailer");
+const nodemailer = require("nodemailer");
+
+// ===============================
+// DEBUG ENV VARIABLES
+// ===============================
+
+console.log(
+  "EMAIL_USER:",
+  process.env.EMAIL_USER
+);
+
+console.log(
+  "EMAIL_PASS:",
+  process.env.EMAIL_PASS
+    ? "EXISTS"
+    : "MISSING"
+);
+
+console.log(
+  "SENDER_EMAIL:",
+  process.env.SENDER_EMAIL
+);
+
+// ===============================
+// BREVO SMTP TRANSPORTER
+// ===============================
 
 const transporter =
   nodemailer.createTransport({
@@ -11,8 +35,6 @@ const transporter =
 
     secure: false,
 
-    requireTLS: true,
-
     auth: {
 
       user:
@@ -23,47 +45,60 @@ const transporter =
 
     },
 
-    connectionTimeout:
-      20000,
+    tls: {
 
-    greetingTimeout:
-      20000,
+      rejectUnauthorized: false,
 
-    socketTimeout:
-      30000,
+    },
 
   });
-/**
- * Verify transporter on startup
- */
+
+// ===============================
+// VERIFY CONNECTION
+// ===============================
+
 transporter.verify(
   (error, success) => {
+
     if (error) {
+
       console.error(
-        "Brevo SMTP Error:",
-        error.message
+        "BREVO SMTP ERROR:",
+        error
       );
+
     } else {
+
       console.log(
-        "Brevo SMTP Connected"
+        "BREVO SMTP CONNECTED SUCCESSFULLY"
       );
+
     }
+
   }
 );
 
-/**
- * Send OTP Email
- */
+// ===============================
+// SEND OTP FUNCTION
+// ===============================
+
 const sendOTP =
   async (
     email,
     otp
   ) => {
+
     try {
+
+      console.log(
+        "Sending OTP to:",
+        email
+      );
+
       const mailOptions = {
+
         from:
-          process.env
-            .SENDER_EMAIL,
+          process.env.SENDER_EMAIL,
 
         to: email,
 
@@ -80,7 +115,9 @@ const sendOTP =
             border-radius: 10px;
           ">
 
-            <h2>
+            <h2 style="
+              color: #2563eb;
+            ">
               OTP Verification
             </h2>
 
@@ -94,6 +131,7 @@ const sendOTP =
               letter-spacing: 5px;
               margin: 20px 0;
               color: #2563eb;
+              text-align: center;
             ">
               ${otp}
             </div>
@@ -112,6 +150,7 @@ const sendOTP =
 
           </div>
         `,
+
       };
 
       const info =
@@ -119,21 +158,46 @@ const sendOTP =
           mailOptions
         );
 
+      console.log(
+        "OTP EMAIL SENT SUCCESSFULLY"
+      );
+
+      console.log(
+        "MESSAGE ID:",
+        info.messageId
+      );
+
       return {
+
         success: true,
+
         messageId:
           info.messageId,
+
       };
+
     } catch (error) {
+
       console.error(
-        "Send OTP Error:",
+        "SEND OTP ERROR:",
         error.message
+      );
+
+      console.error(
+        "FULL ERROR:",
+        JSON.stringify(
+          error,
+          null,
+          2
+        )
       );
 
       throw new Error(
         "Failed to send OTP email"
       );
+
     }
+
   };
 
 module.exports =
