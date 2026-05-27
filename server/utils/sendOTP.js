@@ -1,46 +1,13 @@
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
 // =====================================
-// DEBUG ENV VARIABLES
+// RESEND CONFIG
 // =====================================
 
-console.log(
-  "EMAIL_USER:",
-  process.env.EMAIL_USER
-);
-
-console.log(
-  "EMAIL_PASS:",
-  process.env.EMAIL_PASS
-    ? "EXISTS"
-    : "MISSING"
-);
-
-console.log(
-  "SENDER_EMAIL:",
-  process.env.SENDER_EMAIL
-);
-
-// =====================================
-// CREATE GMAIL SMTP TRANSPORTER
-// =====================================
-
-const transporter =
-  nodemailer.createTransport({
-
-    service: "gmail",
-
-    auth: {
-
-      user:
-        process.env.EMAIL_USER,
-
-      pass:
-        process.env.EMAIL_PASS,
-
-    },
-
-  });
+const resend =
+  new Resend(
+    process.env.RESEND_API_KEY
+  );
 
 // =====================================
 // SEND OTP FUNCTION
@@ -59,86 +26,74 @@ const sendOTP =
         email
       );
 
-      const mailOptions = {
+      const response =
+        await resend.emails.send({
 
-        from:
-          process.env.SENDER_EMAIL,
+          from:
+            "onboarding@resend.dev",
 
-        to: email,
+          to: email,
 
-        subject:
-          "Court Case Management OTP Verification",
+          subject:
+            "Court Case Management OTP Verification",
 
-        html: `
-          <div style="
-            font-family: Arial, sans-serif;
-            max-width: 500px;
-            margin: auto;
-            padding: 20px;
-            border: 1px solid #ddd;
-            border-radius: 10px;
-          ">
-
-            <h2 style="
-              color: #2563eb;
-            ">
-              OTP Verification
-            </h2>
-
-            <p>
-              Your OTP for email verification is:
-            </p>
-
+          html: `
             <div style="
-              font-size: 32px;
-              font-weight: bold;
-              letter-spacing: 5px;
-              margin: 20px 0;
-              color: #2563eb;
-              text-align: center;
+              font-family: Arial, sans-serif;
+              max-width: 500px;
+              margin: auto;
+              padding: 20px;
+              border: 1px solid #ddd;
+              border-radius: 10px;
             ">
-              ${otp}
+
+              <h2 style="
+                color: #2563eb;
+              ">
+                OTP Verification
+              </h2>
+
+              <p>
+                Your OTP for email verification is:
+              </p>
+
+              <div style="
+                font-size: 32px;
+                font-weight: bold;
+                letter-spacing: 5px;
+                margin: 20px 0;
+                color: #2563eb;
+                text-align: center;
+              ">
+                ${otp}
+              </div>
+
+              <p>
+                This OTP expires in
+                <strong>
+                  10 minutes
+                </strong>.
+              </p>
+
+              <p>
+                If you did not request this,
+                please ignore this email.
+              </p>
+
             </div>
+          `,
 
-            <p>
-              This OTP expires in
-              <strong>
-                10 minutes
-              </strong>.
-            </p>
-
-            <p>
-              If you did not request this,
-              please ignore this email.
-            </p>
-
-          </div>
-        `,
-
-      };
-
-      const info =
-        await transporter.sendMail(
-          mailOptions
-        );
+        });
 
       console.log(
         "OTP EMAIL SENT SUCCESSFULLY"
       );
 
       console.log(
-        "MESSAGE ID:",
-        info.messageId
+        response
       );
 
-      return {
-
-        success: true,
-
-        messageId:
-          info.messageId,
-
-      };
+      return response;
 
     } catch (error) {
 
