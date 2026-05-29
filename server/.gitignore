@@ -40,3 +40,8 @@ build
 # OS files
 .DS_Store
 Thumbs.db
+
+server/oracleJdk-26/
+node_modules/
+client/node_modules/
+server/node_modules/

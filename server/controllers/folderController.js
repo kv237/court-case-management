@@ -6,423 +6,448 @@ require("../config/supabase");
 // =====================================
 
 exports.createFolder =
-  async (req, res) => {
+async (req, res) => {
 
-    try {
+```
+try {
 
-      const {
+  const {
+    folder_name,
+  } = req.body;
+
+  if (!folder_name) {
+
+    return res.status(400).json({
+
+      success: false,
+
+      message:
+        "Folder name required",
+
+    });
+
+  }
+
+  // CHECK EXISTING FOR CURRENT USER
+
+  const {
+    data: existingFolder,
+  } = await supabase
+
+    .from(
+      "document_folders"
+    )
+
+    .select("*")
+
+    .eq(
+      "folder_name",
+      folder_name
+    )
+
+    .eq(
+      "user_id",
+      req.user.id
+    )
+
+    .single();
+
+  if (existingFolder) {
+
+    return res.status(400).json({
+
+      success: false,
+
+      message:
+        "Folder already exists",
+
+    });
+
+  }
+
+  // CREATE FOLDER
+
+  const {
+    data,
+    error,
+  } = await supabase
+
+    .from(
+      "document_folders"
+    )
+
+    .insert([
+
+      {
         folder_name,
-      } = req.body;
+        user_id:
+          req.user.id,
+      },
 
-      if (!folder_name) {
+    ])
 
-        return res.status(400).json({
+    .select();
 
-          success: false,
+  if (error) {
 
-          message:
-            "Folder name required",
+    return res.status(500).json({
 
-        });
+      success: false,
 
-      }
+      message:
+        error.message,
 
-      // CHECK EXISTING
+    });
 
-      const {
-        data: existingFolder,
-      } = await supabase
+  }
 
-        .from(
-          "document_folders"
-        )
+  return res.status(201).json({
 
-        .select("*")
+    success: true,
 
-        .eq(
-          "folder_name",
-          folder_name
-        )
+    message:
+      "Folder Created Successfully",
 
-        .single();
+    folder: data[0],
 
-      if (existingFolder) {
+  });
 
-        return res.status(400).json({
+} catch (error) {
 
-          success: false,
+  console.log(error);
 
-          message:
-            "Folder already exists",
+  return res.status(500).json({
 
-        });
+    success: false,
 
-      }
+    message:
+      "Server Error",
 
-      // CREATE FOLDER
+  });
 
-      const {
-        data,
-        error,
-      } = await supabase
+}
+```
 
-        .from(
-          "document_folders"
-        )
-
-        .insert([
-
-          {
-            folder_name,
-          },
-
-        ])
-
-        .select();
-
-      if (error) {
-
-        return res.status(500).json({
-
-          success: false,
-
-          message:
-            error.message,
-
-        });
-
-      }
-
-      return res.status(201).json({
-
-        success: true,
-
-        message:
-          "Folder Created Successfully",
-
-        folder: data[0],
-
-      });
-
-    } catch (error) {
-
-      console.log(error);
-
-      return res.status(500).json({
-
-        success: false,
-
-        message:
-          "Server Error",
-
-      });
-
-    }
-
-  };
+};
 
 // =====================================
 // GET FOLDERS
 // =====================================
 
 exports.getFolders =
-  async (req, res) => {
+async (req, res) => {
 
-    try {
+```
+try {
 
-      const {
-        data,
-        error,
-      } = await supabase
+  const {
+    data,
+    error,
+  } = await supabase
 
-        .from(
-          "document_folders"
-        )
+    .from(
+      "document_folders"
+    )
 
-        .select("*")
+    .select("*")
 
-        .order(
-          "created_at",
-          {
-            ascending: true,
-          }
-        );
+    .eq(
+      "user_id",
+      req.user.id
+    )
 
-      if (error) {
-
-        return res.status(500).json({
-
-          success: false,
-
-          message:
-            error.message,
-
-        });
-
+    .order(
+      "created_at",
+      {
+        ascending: true,
       }
+    );
 
-      return res.status(200).json({
+  if (error) {
 
-        success: true,
+    return res.status(500).json({
 
-        folders: data,
+      success: false,
 
-      });
+      message:
+        error.message,
 
-    } catch (error) {
+    });
 
-      console.log(error);
+  }
 
-      return res.status(500).json({
+  return res.status(200).json({
 
-        success: false,
+    success: true,
 
-        message:
-          "Server Error",
+    folders: data,
 
-      });
+  });
 
-    }
+} catch (error) {
 
-  };
+  console.log(error);
+
+  return res.status(500).json({
+
+    success: false,
+
+    message:
+      "Server Error",
+
+  });
+
+}
+```
+
+};
 
 // =====================================
 // RENAME FOLDER
 // =====================================
 
 exports.renameFolder =
-  async (req, res) => {
+async (req, res) => {
 
-    try {
+```
+try {
 
-      const {
-        folder_name,
+  const {
+    folder_name,
+    new_name,
+  } = req.body;
+
+  if (
+    !folder_name ||
+    !new_name
+  ) {
+
+    return res.status(400).json({
+
+      success: false,
+
+      message:
+        "Folder names required",
+
+    });
+
+  }
+
+  const {
+    data: existingFolder,
+  } = await supabase
+
+    .from(
+      "document_folders"
+    )
+
+    .select("*")
+
+    .eq(
+      "folder_name",
+      new_name
+    )
+
+    .eq(
+      "user_id",
+      req.user.id
+    )
+
+    .single();
+
+  if (existingFolder) {
+
+    return res.status(400).json({
+
+      success: false,
+
+      message:
+        "Folder name already exists",
+
+    });
+
+  }
+
+  const {
+    data,
+    error,
+  } = await supabase
+
+    .from(
+      "document_folders"
+    )
+
+    .update({
+
+      folder_name:
         new_name,
-      } = req.body;
 
-      if (
-        !folder_name ||
-        !new_name
-      ) {
+    })
 
-        return res.status(400).json({
+    .eq(
+      "folder_name",
+      folder_name
+    )
 
-          success: false,
+    .eq(
+      "user_id",
+      req.user.id
+    )
 
-          message:
-            "Folder names required",
+    .select();
 
-        });
+  if (error) {
 
-      }
+    return res.status(500).json({
 
-      // CHECK IF NEW NAME EXISTS
+      success: false,
 
-      const {
-        data: existingFolder,
-      } = await supabase
+      message:
+        error.message,
 
-        .from(
-          "document_folders"
-        )
+    });
 
-        .select("*")
+  }
 
-        .eq(
-          "folder_name",
-          new_name
-        )
+  await supabase
 
-        .single();
+    .from("documents")
 
-      if (existingFolder) {
+    .update({
 
-        return res.status(400).json({
+      folder_name:
+        new_name,
 
-          success: false,
+    })
 
-          message:
-            "Folder name already exists",
+    .eq(
+      "folder_name",
+      folder_name
+    );
 
-        });
+  return res.status(200).json({
 
-      }
+    success: true,
 
-      // UPDATE FOLDER
+    message:
+      "Folder renamed successfully",
 
-      const {
-        data,
-        error,
-      } = await supabase
+    folder: data[0],
 
-        .from(
-          "document_folders"
-        )
+  });
 
-        .update({
+} catch (error) {
 
-          folder_name:
-            new_name,
+  console.log(error);
 
-        })
+  return res.status(500).json({
 
-        .eq(
-          "folder_name",
-          folder_name
-        )
+    success: false,
 
-        .select();
+    message:
+      "Server Error",
 
-      if (error) {
+  });
 
-        return res.status(500).json({
+}
+```
 
-          success: false,
-
-          message:
-            error.message,
-
-        });
-
-      }
-
-      // UPDATE DOCUMENTS INSIDE FOLDER
-
-      await supabase
-
-        .from("documents")
-
-        .update({
-
-          folder_name:
-            new_name,
-
-        })
-
-        .eq(
-          "folder_name",
-          folder_name
-        );
-
-      return res.status(200).json({
-
-        success: true,
-
-        message:
-          "Folder renamed successfully",
-
-        folder: data[0],
-
-      });
-
-    } catch (error) {
-
-      console.log(error);
-
-      return res.status(500).json({
-
-        success: false,
-
-        message:
-          "Server Error",
-
-      });
-
-    }
-
-  };
+};
 
 // =====================================
 // DELETE FOLDER
 // =====================================
 
 exports.deleteFolder =
-  async (req, res) => {
+async (req, res) => {
 
-    try {
+```
+try {
 
-      const {
-        folder_name,
-      } = req.body;
+  const {
+    folder_name,
+  } = req.body;
 
-      if (!folder_name) {
+  if (!folder_name) {
 
-        return res.status(400).json({
+    return res.status(400).json({
 
-          success: false,
+      success: false,
 
-          message:
-            "Folder name required",
+      message:
+        "Folder name required",
 
-        });
+    });
 
-      }
+  }
 
-      // DELETE DOCUMENTS INSIDE FOLDER
+  await supabase
 
-      await supabase
+    .from("documents")
 
-        .from("documents")
+    .delete()
 
-        .delete()
+    .eq(
+      "folder_name",
+      folder_name
+    );
 
-        .eq(
-          "folder_name",
-          folder_name
-        );
+  const {
+    error,
+  } = await supabase
 
-      // DELETE FOLDER
+    .from(
+      "document_folders"
+    )
 
-      const {
-        error,
-      } = await supabase
+    .delete()
 
-        .from(
-          "document_folders"
-        )
+    .eq(
+      "folder_name",
+      folder_name
+    )
 
-        .delete()
+    .eq(
+      "user_id",
+      req.user.id
+    );
 
-        .eq(
-          "folder_name",
-          folder_name
-        );
+  if (error) {
 
-      if (error) {
+    return res.status(500).json({
 
-        return res.status(500).json({
+      success: false,
 
-          success: false,
+      message:
+        error.message,
 
-          message:
-            error.message,
+    });
 
-        });
+  }
 
-      }
+  return res.status(200).json({
 
-      return res.status(200).json({
+    success: true,
 
-        success: true,
+    message:
+      "Folder deleted successfully",
 
-        message:
-          "Folder deleted successfully",
+  });
 
-      });
+} catch (error) {
 
-    } catch (error) {
+  console.log(error);
 
-      console.log(error);
+  return res.status(500).json({
 
-      return res.status(500).json({
+    success: false,
 
-        success: false,
+    message:
+      "Server Error",
 
-        message:
-          "Server Error",
+  });
 
-      });
+}
+```
 
-    }
-
-  };
+};

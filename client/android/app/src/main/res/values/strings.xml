@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Court Case Management</string>
+    <string name="title_activity_main">Court Case Management</string>
+    <string name="package_name">com.courtcase.management</string>
+    <string name="custom_url_scheme">com.courtcase.management</string>
+</resources>

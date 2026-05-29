@@ -77,7 +77,7 @@ function Upload() {
   const [
     documentType,
     setDocumentType,
-  ] = useState("");
+  ] = useState(null);
 
   const [
     description,
@@ -121,15 +121,22 @@ function Upload() {
             await getFolders();
 
           if (
-            mounted &&
-            data?.success
-          ) {
+  mounted &&
+  data?.success
+) {
 
-            setDocumentTypes(
-              data?.folders || []
-            );
+  const folders =
+    data?.folders || [];
 
-          }
+  setDocumentTypes(folders);
+
+  if (folders.length === 0) {
+
+    setDocumentType(null);
+
+  }
+
+}
 
         } catch (error) {
 
@@ -496,7 +503,7 @@ function Upload() {
 
         setCaseNumber("");
 
-        setDocumentType("");
+        setDocumentType(null);
 
         setDescription("");
 
@@ -937,65 +944,82 @@ function Upload() {
             </div>
 
             <select
-              value={documentType}
+  value={documentType || ""}
+  onChange={(e) =>
+    setDocumentType(
+      e.target.value || null
+    )
+  }
+  disabled={
+    documentTypes.length === 0
+  }
+  className="
+    w-full
+    h-[55px]
+    mt-2
 
-              onChange={(e) =>
-                setDocumentType(
-                  e.target.value
-                )
-              }
+    border border-[#D6D9E4]
+    dark:border-slate-700
 
-              className="
-                w-full
-                h-[55px]
-                mt-2
+    rounded-2xl
 
-                border border-[#D6D9E4]
-                dark:border-slate-700
+    px-4
 
-                rounded-2xl
+    outline-none
 
-                px-4
+    bg-white
+    dark:bg-[#050816]
 
-                outline-none
+    text-black
+    dark:text-white
 
-                bg-white
-                dark:bg-[#050816]
+    disabled:bg-gray-100
+    dark:disabled:bg-slate-900
 
-                text-black
-                dark:text-white
-              "
-            >
+    disabled:cursor-not-allowed
+  "
+>
 
-              <option value="">
-                Select Type
-              </option>
+  {documentTypes.length === 0 ? (
 
-              {documentTypes.map(
-                (folder) => (
+    <option value="">
+      No Folder Available
+    </option>
 
-                  <option
-                    key={
-                      folder?._id ||
-                      folder?.id
-                    }
-                    value={
-                      folder?.folder_name ||
-                      folder?.name
-                    }
-                  >
+  ) : (
 
-                    {
-                      folder?.folder_name ||
-                      folder?.name
-                    }
+    <>
+      <option value="">
+        Select Type
+      </option>
 
-                  </option>
+      {documentTypes.map(
+        (folder) => (
 
-                )
-              )}
+          <option
+            key={
+              folder?._id ||
+              folder?.id
+            }
+            value={
+              folder?.folder_name ||
+              folder?.name
+            }
+          >
+            {
+              folder?.folder_name ||
+              folder?.name
+            }
+          </option>
 
-            </select>
+        )
+      )}
+
+    </>
+
+  )}
+
+</select>
 
           </div>
 
