@@ -117,6 +117,8 @@ app.use(compression());
 
 const allowedOrigins = [
   "http://localhost:5173",
+  "https://localhost",
+  "capacitor://localhost",
   "https://court-case-management-nu.vercel.app",
 ];
 
