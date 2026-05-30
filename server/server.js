@@ -456,6 +456,26 @@ app.get("/api/health", (req, res) => {
 });
 
 
+// ===============================
+// APP VERSION
+// ===============================
+
+app.get("/api/app-version", (req, res) => {
+
+  res.status(200).json({
+
+    latestVersion: "1.0.0",
+
+    apkUrl:
+      "https://github.com/kv237/court-case-management/releases/download/v1.0.0/app-release.apk",
+
+    mandatory: false
+
+  });
+
+});
+
+
 
 // ===============================
 // 404 ROUTE
