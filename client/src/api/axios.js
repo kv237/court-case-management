@@ -24,6 +24,8 @@ API.interceptors.request.use(
         "token"
       );
 
+      
+
     if (token) {
 
       config.headers.Authorization =
@@ -53,36 +55,30 @@ API.interceptors.response.use(
 
   (error) => {
 
-    // AUTO LOGOUT IF TOKEN INVALID
+    alert(
+      JSON.stringify({
+        message: error.message,
+        code: error.code,
+        status: error.response?.status,
+        data: error.response?.data
+      })
+    );
 
     if (
-      error.response
-        ?.status === 401
+      error.response?.status === 401
     ) {
 
-      localStorage.removeItem(
-        "token"
-      );
-
-      localStorage.removeItem(
-        "user"
-      );
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
 
       if (
-        window.location.pathname !==
-        "/login"
+        window.location.pathname !== "/login"
       ) {
-
-        window.location.href =
-          "/login";
-
+        window.location.href = "/login";
       }
-
     }
 
-    return Promise.reject(
-      error
-    );
+    return Promise.reject(error);
 
   }
 

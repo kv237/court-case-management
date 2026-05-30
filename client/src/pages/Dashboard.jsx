@@ -28,6 +28,7 @@ import {
 
 import axios from "axios";
 
+
 import {
   showSuccess,
   showError,
@@ -86,15 +87,80 @@ export default function Dashboard() {
   const [recentDocs, setRecentDocs] =
     useState([]);
 
+    
+
   const token =
     localStorage.getItem("token");
 
   const API =
     import.meta.env.VITE_API_URL;
 
+useEffect(() => {
+
+  const checkForUpdates = async () => {
+
+    try {
+
+      const res = await axios.get(
+        `${API}/app-version`
+      );
+
+      alert(
+        JSON.stringify(res.data)
+      );
+
+    } catch (error) {
+
+  console.log(error);
+
+  alert(
+    "Update Check Failed"
+  );
+
+}
+
+    
+
+  };
+
+  checkForUpdates();
+
+}, [API]);
+    
+
   // =====================================
   // FETCH DASHBOARD
   // =====================================
+
+  useEffect(() => {
+
+  const checkForUpdates = async () => {
+
+    try {
+
+      const res = await axios.get(
+        `${API}/app-version`
+      );
+
+      console.log(
+        "App Version Info:",
+        res.data
+      );
+
+    } catch (error) {
+
+      console.log(
+        "Update Check Failed",
+        error
+      );
+
+    }
+
+  };
+
+  checkForUpdates();
+
+}, [API]);
 
   useEffect(() => {
 

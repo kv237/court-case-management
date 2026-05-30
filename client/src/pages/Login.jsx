@@ -160,20 +160,27 @@ function Login() {
 
         }
 
-      } catch (error) {
+      } 
+      catch (error) {
 
-        console.log(error);
+  console.log("LOGIN ERROR:", error);
 
-        showError(
+  alert(
+    JSON.stringify({
+      message: error?.message,
+      status: error?.response?.status,
+      response: error?.response?.data
+    })
+  );
 
-          error?.response?.data
-            ?.message ||
+  showError(
+    error?.response?.data?.message ||
+    error?.message ||
+    "Server Error"
+  );
 
-          "Server Error"
-
-        );
-
-      } finally {
+}
+      finally {
 
         setLoading(false);
 
