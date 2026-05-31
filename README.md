@@ -1,13 +1,26 @@
-## 🌐 Live Deployment
+## 🌐 Live Project Links
 
 ### Web Application
 
-* Live Website: [Add Your Vercel URL]
+https://court-case-management-nu.vercel.app/login
 
-### Mobile Application
+### 🎥 Demo Video
 
-* Android APK Available
-* Current Version: v1.0.0
+https://youtube.com/shorts/bJTcVGZOv50?si=eegOx7uu44hk6bhx
+
+### 📂 GitHub Repository
+
+https://github.com/kv237/court-case-management
+
+---
+
+## 📌 Project Overview
+
+This project is a Professional Document Management System designed to help users securely organize, upload, and manage professional documents using cloud-based storage.
+
+The platform allows users to select folders, upload files, and automatically store documents in the selected location using Supabase Storage. This helps users manage important professional files efficiently and reduces the difficulty of handling large numbers of documents manually.
+
+The current version focuses on document organization and cloud storage, while future versions are planned to evolve into a complete Court Case Management Platform with lawyer management, client management, hearing scheduling, authentication, and AI-powered legal assistance.
 
 ---
 
